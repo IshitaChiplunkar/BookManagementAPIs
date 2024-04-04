@@ -186,6 +186,24 @@ shapeAI.post("/author/newAuthor",(req,res)=>{
     return res.json({authors: database.authors, message:`New author added with id ${newAuthor.id}`});
 })
 
+//PUT
+/*
+Route:                 /author/update
+Description:           To update author name
+Access:                Public
+Parameters:            id
+Method:                PUT
+*/
+shapeAI.put("/author/update/:id",(req,res)=>{
+    database.authors.forEach((author)=>{
+        if(author.id === parseInt(req.params.id)){
+            author.name = req.body.authorName;
+            return;
+        }
+    })
+    return res.json({authors: database.authors,message:"Author name is updated"});
+})
+
 //Publications
 /*
 Route:                 /publications
@@ -243,5 +261,49 @@ shapeAI.post("/pub/newPub",(req,res)=>{
     database.publications.push(newPub);
     return res.json({publications: database.publications, message: `New publication added ${newPub.id}`});
 })
+
+//PUT
+/*
+Route:                 /pub/update
+Description:           To update author name
+Access:                Public
+Parameters:            id
+Method:                PUT
+*/
+shapeAI.put("/pub/update/:id",(req,res)=>{
+    database.publications.forEach((pub)=>{
+        if(pub.id === parseInt(req.params.id)){
+            pub.name = req.body.pubName;
+            return;
+        }
+    })
+    return res.json({publications: database.publications,message:"Publication name is updated"});
+})
+
+/*
+Route:                 /pub/update
+Description:           To update/add new book to a publication
+Access:                Public
+Parameters:            id
+Method:                PUT
+*/
+shapeAI.put("/publication/book/update/:id",(req,res)=>{
+    //Add book to publications
+    database.publications.forEach((pub)=>{
+        if(pub.id === parseInt(req.params.id)){
+            return pub.books.push(req.body.bookISBN);
+        }
+    })
+
+    //Update entry for the book
+    database.books.forEach((book)=>{
+        if(book.ISBN===req.body.bookISBN){
+            book.publication = parseInt(req.params.id);
+            return;
+        }
+    })
+    return res.json({publications: database.publications,books: database.books,message:"Details updated"});
+})
+
 
 shapeAI.listen(3000, () => console.log("Server is running!!"));
