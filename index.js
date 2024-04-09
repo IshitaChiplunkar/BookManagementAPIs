@@ -1,11 +1,17 @@
+require("dotenv").config();
+
 //Framework
 const express = require("express");
+const mongoose = require("mongoose");
 
 //Database
 const database = require("./database/index");
 
 //Initializing express
 const shapeAI = express();
+
+//Establish database connection
+mongoose.connect(process.env.MONGO_URL).then(() => console.log("Connection established!"));
 
 shapeAI.use(express.json());
 
@@ -162,15 +168,15 @@ shapeAI.delete("/book/delete/author/:isbn", (req, res) => {
     })
 
     //update author database
-    database.authors.forEach((author)=>{
-        if(author.id === req.body.authorId){
-            const newBookList = author.books.filter((book)=>book !==req.params.isbn)
+    database.authors.forEach((author) => {
+        if (author.id === req.body.authorId) {
+            const newBookList = author.books.filter((book) => book !== req.params.isbn)
             author.books = newBookList;
             return;
         }
     })
 
-    return res.json({books: database.books,authors: database.authors,message:"Deleted author from books"})
+    return res.json({ books: database.books, authors: database.authors, message: "Deleted author from books" })
 })
 
 
@@ -260,10 +266,10 @@ Access:                Public
 Parameters:            authorId
 Method:                DELETE
 */
-shapeAI.delete("/author/delete/:authorId",(req,res)=>{
-    const newAuthorList = database.authors.filter((author)=>author.id!==parseInt(req.params.authorId))
-    database.authors =newAuthorList;
-    return res.json({Authors: newAuthorList});
+shapeAI.delete("/author/delete/:authorId", (req, res) => {
+    const newAuthorList = database.authors.filter((author) => author.id !== parseInt(req.params.authorId))
+    database.authors = newAuthorList;
+    return res.json({ Authors: newAuthorList });
 })
 
 //Publications
@@ -375,10 +381,10 @@ Access:                Public
 Parameters:            pubId
 Method:                DELETE
 */
-shapeAI.delete("/publication/delete/:pubId",(req,res)=>{
-    const newPubList = database.publications.filter((pub)=>pub.id!==parseInt(req.params.pubId))
-    database.publications =newPubList;
-    return res.json({Publications: newPubList});
+shapeAI.delete("/publication/delete/:pubId", (req, res) => {
+    const newPubList = database.publications.filter((pub) => pub.id !== parseInt(req.params.pubId))
+    database.publications = newPubList;
+    return res.json({ Publications: newPubList });
 })
 
 /*
@@ -388,26 +394,26 @@ Access:                Public
 Parameters:            pubId
 Method:                DELETE
 */
-shapeAI.delete("/publication/book/delete/:pubId",(req,res)=>{
+shapeAI.delete("/publication/book/delete/:pubId", (req, res) => {
 
     //update publication database
-   database.publications.forEach((pub)=>{
-    if(pub.id === parseInt(req.params.pubId)){
-        const newBookList = pub.books.filter((book)=>book!==req.body.bookISBN);
-        pub.books = newBookList;
-        return;
-    }
-
-    //update book database
-    database.books.forEach((book)=>{
-        if(book.ISBN === req.body.bookISBN){
-            book.publication = 0;
-            return ;
+    database.publications.forEach((pub) => {
+        if (pub.id === parseInt(req.params.pubId)) {
+            const newBookList = pub.books.filter((book) => book !== req.body.bookISBN);
+            pub.books = newBookList;
+            return;
         }
+
+        //update book database
+        database.books.forEach((book) => {
+            if (book.ISBN === req.body.bookISBN) {
+                book.publication = 0;
+                return;
+            }
+        })
+
+        return res.json({ books: database.books, publications: database.publications, message: "Deleted publications" })
     })
-   
-    return res.json({books: database.books, publications: database.publications,message:"Deleted publications"})
-})
 })
 
 
