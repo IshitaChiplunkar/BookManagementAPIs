@@ -9,10 +9,8 @@ const BookSchema = mongoose.Schema({
     numPage: Number,
     publication: Number,
     pubDate: String,
-    category: [Number]
+    category: [String]
 });
 
-//Creating a book model
-const BookModel = mongoose.model(BookSchema);
-
+const BookModel = mongoose.model('books',BookSchema);
 module.exports = BookModel;

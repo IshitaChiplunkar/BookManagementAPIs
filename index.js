@@ -7,6 +7,11 @@ const mongoose = require("mongoose");
 //Database
 const database = require("./database/index");
 
+//Models
+const BookModel = require("./database/book");
+const AuthorModel = require("./database/author");
+const PublicationModel = require("./database/publication");
+
 //Initializing express
 const shapeAI = express();
 
@@ -24,8 +29,9 @@ Access:                Public
 Parameters:            none
 Method:                GET
 */
-shapeAI.get("/books", (req, res) => {
-    return res.json({ books: database.books });
+shapeAI.get("/books", async (req, res) => {
+    const getBooks = await BookModel.find();
+    return res.json({ books: getBooks });
 })
 
 /*
@@ -35,10 +41,12 @@ Access:                Public
 Parameters:            isbn
 Method:                GET
 */
-shapeAI.get("/book/:isbn", (req, res) => {
-    const specificBook = database.books.filter((book) => book.ISBN === req.params.isbn);
+shapeAI.get("/book/:isbn", async (req, res) => {
 
-    if (specificBook.length === 0) {
+    const specificBook = await BookModel.findOne({ISBN: req.params.isbn});
+    //const specificBook = database.books.filter((book) => book.ISBN === req.params.isbn);
+
+    if (!specificBook) {
         return res.json({ error: `No book found with ISBN: ${req.params.isbn}` });
     }
     return res.json({ book: specificBook });
@@ -51,10 +59,12 @@ Access:                Public
 Parameters:            categoryName
 Method:                GET
 */
-shapeAI.get("/book/cat/:categoryName", (req, res) => {
-    const categorySpecificBooks = database.books.filter((book) => book.category.includes(req.params.categoryName));
+shapeAI.get("/book/cat/:categoryName", async (req, res) => {
+    
+    const categorySpecificBooks = await BookModel.findOne({category: req.params.categoryName});
+    //const categorySpecificBooks = database.books.filter((book) => book.category.includes(req.params.categoryName));
 
-    if (categorySpecificBooks.length === 0) {
+    if (!categorySpecificBooks) {
         return res.json({ error: `No book found with category: ${req.params.categoryName}` });
     }
     return res.json({ books: categorySpecificBooks });
@@ -67,10 +77,11 @@ Access:                Public
 Parameters:            authId
 Method:                GET
 */
-shapeAI.get("/book/auth/:authId", (req, res) => {
-    const authorSpecificBooks = database.books.filter((book) => book.authors.includes(parseInt(req.params.authId)));
+shapeAI.get("/book/auth/:authId", async (req, res) => {
+    //const authorSpecificBooks = database.books.filter((book) => book.authors.includes(parseInt(req.params.authId)));
 
-    if (authorSpecificBooks.length === 0) {
+    const authorSpecificBooks = await BookModel.findOne({authors: req.params.authId});
+    if (!authorSpecificBooks) {
         return res.json({ error: `No book found with authorId: ${req.params.authId}` });
     }
     return res.json({ books: authorSpecificBooks });
@@ -84,10 +95,12 @@ Access:                Public
 Parameters:            none
 Method:                POST
 */
-shapeAI.post("/book/newBook", (req, res) => {
+shapeAI.post("/book/newBook", async (req, res) => {
     const { newBook } = req.body;
-    database.books.push(newBook);
-    return res.json({ books: database.books, message: "New book added" });
+
+    BookModel.create(newBook);
+    //database.books.push(newBook);
+    return res.json({ message: "New book added" });
 })
 
 //PUT
@@ -98,14 +111,18 @@ Access:                Public
 Parameters:            isbn
 Method:                PUT
 */
-shapeAI.put("/book/update/:isbn", (req, res) => {
+shapeAI.put("/book/update/:isbn", async (req, res) => {
+
+    const updatedBook = await BookModel.findOneAndUpdate({ISBN: req.params.isbn},{title: req.body.bookTitle},{new:true});
+    /*
     database.books.forEach((book) => {
         if (book.ISBN === req.params.isbn) {
             book.title = req.body.bookTitle;
             return;
         }
     })
-    return res.json({ books: database.books, message: "Book is updated" });
+    */
+    return res.json({ books: updatedBook, message: "Book is updated" });
 })
 
 /*
@@ -190,8 +207,9 @@ Access:                Public
 Parameters:            none
 Method:                GET
 */
-shapeAI.get("/authors", (req, res) => {
-    return res.json({ authors: database.authors });
+shapeAI.get("/authors", async (req, res) => {
+    const getAuthors = await AuthorModel.find();
+    return res.json({ authors: getAuthors });
 })
 
 /*
@@ -201,10 +219,11 @@ Access:                Public
 Parameters:            id
 Method:                GET
 */
-shapeAI.get("/author/:id", (req, res) => {
-    const specificAuthor = database.authors.filter((auth) => auth.id === parseInt(req.params.id));
+shapeAI.get("/author/:id", async (req, res) => {
+    //const specificAuthor = database.authors.filter((auth) => auth.id === parseInt(req.params.id));
 
-    if (specificAuthor.length === 0) {
+    const specificAuthor = await AuthorModel.findOne({id: req.params.id});
+    if (!specificAuthor) {
         return res.json({ error: `No author found with id: ${req.params.id}` });
     }
     return res.json({ author: specificAuthor });
@@ -217,10 +236,11 @@ Access:                Public
 Parameters:            isbn
 Method:                GET
 */
-shapeAI.get("/author/book/:isbn", (req, res) => {
-    const authorList = database.authors.filter((auth) => auth.books.includes(req.params.isbn));
+shapeAI.get("/author/book/:isbn", async (req, res) => {
+    //const authorList = database.authors.filter((auth) => auth.books.includes(req.params.isbn));
 
-    if (authorList.length === 0) {
+    const authorList = await AuthorModel.find({books: req.params.isbn});
+    if (!authorList) {
         return res.json({ error: `No author found for book isbn: ${req.params.isbn}` })
     }
     return res.json({ authorList: authorList });
@@ -234,10 +254,12 @@ Access:                Public
 Parameters:            none
 Method:                POST
 */
-shapeAI.post("/author/newAuthor", (req, res) => {
+shapeAI.post("/author/newAuthor", async (req, res) => {
     const { newAuthor } = req.body;
-    database.authors.push(newAuthor);
-    return res.json({ authors: database.authors, message: `New author added with id ${newAuthor.id}` });
+
+    AuthorModel.create(newAuthor);
+    //database.authors.push(newAuthor);
+    return res.json({message: `New author added with id ${newAuthor.id}` });
 })
 
 //PUT
@@ -280,8 +302,9 @@ Access:                Public
 Parameters:            none
 Method:                GET
 */
-shapeAI.get("/publications", (req, res) => {
-    return res.json({ publications: database.publications });
+shapeAI.get("/publications", async (req, res) => {
+    const getPublications = await PublicationModel.find();
+    return res.json({ publications: getPublications });
 })
 
 /*
@@ -291,10 +314,11 @@ Access:                Public
 Parameters:            id
 Method:                GET
 */
-shapeAI.get("/publication/:id", (req, res) => {
-    const specificPublication = database.publications.filter((pub) => pub.id === parseInt(req.params.id));
+shapeAI.get("/publication/:id", async (req, res) => {
+    //const specificPublication = database.publications.filter((pub) => pub.id === parseInt(req.params.id));
 
-    if (specificPublication.length === 0) {
+    const specificPublication = await PublicationModel.findOne({id: req.params.id});
+    if (!specificPublication) {
         return res.json({ error: `No publication found with id: ${req.params.id}` });
     }
     return res.json({ publication: specificPublication });
@@ -307,10 +331,11 @@ Access:                Public
 Parameters:            isbn
 Method:                GET
 */
-shapeAI.get("/publication/book/:isbn", (req, res) => {
-    const pubList = database.publications.filter((pub) => pub.books.includes(req.params.isbn));
+shapeAI.get("/publication/book/:isbn", async (req, res) => {
+    //const pubList = database.publications.filter((pub) => pub.books.includes(req.params.isbn));
 
-    if (pubList.length === 0) {
+    const pubList = await PublicationModel.findOne({books: req.params.isbn});
+    if (!pubList) {
         return res.json({ error: `No publications found for book isbn: ${req.params.isbn}` })
     }
     return res.json({ publicationsList: pubList });
@@ -324,10 +349,11 @@ Access:                Public
 Parameters:            none
 Method:                POST
 */
-shapeAI.post("/pub/newPub", (req, res) => {
+shapeAI.post("/pub/newPub", async (req, res) => {
     const { newPub } = req.body;
-    database.publications.push(newPub);
-    return res.json({ publications: database.publications, message: `New publication added ${newPub.id}` });
+    //database.publications.push(newPub);
+    PublicationModel.create(newPub);
+    return res.json({message: `New publication added ${newPub.id}` });
 })
 
 //PUT
