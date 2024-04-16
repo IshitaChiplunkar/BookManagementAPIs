@@ -1,16 +1,42 @@
-const mongoose = require("mongoose");
+const mongoose=require("mongoose");
 
-//Creating a Schema
-const BookSchema = mongoose.Schema({
-    ISBN: String,
-    title: String,
-    authors: [Number],
-    languages: String,
-    numPage: Number,
-    publication: Number,
-    pubDate: String,
-    category: [String]
+//Creating a book schema
+const BookSchema=mongoose.Schema({
+    ISBN: {
+        type:String,
+        required:true,
+        minLength:8,
+        maxLength:10,
+    }, //required
+    title: {
+        type:String,
+        required:true
+    },
+    authors: {
+        type:[Number]
+    },
+    language: {
+        type:String,
+        required:true
+    },
+    pubDate: {
+        type:String,
+        required:true
+    },
+    numOfPage: {
+        type:Number,
+        required:true
+    },
+    category: {
+        type:[String],
+    },
+    publication: {
+        type:Number,
+        required:true
+    }
 });
 
-const BookModel = mongoose.model('books',BookSchema);
+//Create a book model
+const BookModel = mongoose.model("books",BookSchema);
+
 module.exports = BookModel;
